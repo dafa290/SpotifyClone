@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A high-fidelity Spotify Clone with full playback, synced lyrics, custom playlists, and local storage state persistence.">
+  <title>Spotify - Web Player: Music for everyone</title>
+  
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Grid Wrapper -->
+  <div id="app-container">
+    
+    <!-- ==========================================
+         1. LEFT SIDEBAR PANEL
+         ========================================== -->
+    <aside id="left-sidebar">
+      
+      <!-- Quick Navigation links -->
+      <nav class="sidebar-navigation">
+        <a class="sidebar-nav-item active" id="nav-link-home" data-view="home">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a class="sidebar-nav-item" id="nav-link-search" data-view="search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search</span>
+        </a>
+      </nav>
+
+      <!-- Your Library Management -->
+      <div class="sidebar-library">
+        
+        <!-- Header Controls -->
+        <div class="library-header">
+          <div class="library-header-title" id="library-collapse-toggle">
+            <i class="fa-solid fa-lines-leaning"></i>
+            <span>Your Library</span>
+          </div>
+          <div class="library-header-actions">
+            <button class="library-action-btn" id="library-create-playlist-btn" title="Create playlist or folder">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter chips scroll list -->
+        <div class="library-filter-chips">
+          <button class="filter-chip active" data-filter="all">Playlists</button>
+          <button class="filter-chip" data-filter="system">Liked Songs</button>
+          <button class="filter-chip" data-filter="custom">My Playlists</button>
+        </div>
+
+        <!-- Library Utilities (Search + Sort) -->
+        <div class="library-utils">
+          <div class="library-search-container" id="library-search-box">
+            <i class="fa-solid fa-magnifying-glass" id="library-search-icon"></i>
+            <input type="text" placeholder="Search in Library" id="library-search-input">
+          </div>
+          <div class="library-sort-select" id="library-sort-trigger">
+            <span>Recents</span>
+            <i class="fa-solid fa-list-ul"></i>
+          </div>
+        </div>
+
+        <!-- List items list container -->
+        <div class="library-list" id="library-items-list">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ==========================================
+         2. CENTER MAIN PANEL
+         ========================================== -->
+    <main class="panel-card" id="main-panel">
+      
+      <!-- Top Header Navigation and Bar -->
+      <header class="main-header" id="main-header">
+        <div class="header-navigation">
+          <button class="nav-arrow-btn" id="header-prev-btn" disabled title="Go back">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="nav-arrow-btn" id="header-next-btn" disabled title="Go forward">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+          
+          <!-- Shared Search Input on top (only visible when in Search View) -->
+          <div class="header-search-bar" id="top-search-bar" style="display: none;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="What do you want to play?" id="main-search-input">
+          </div>
+        </div>
+
+        <!-- Right Side user profiles -->
+        <div class="header-user-controls">
+          <button class="explore-premium-btn">Explore Premium</button>
+          <button class="header-icon-btn" title="What's New">
+            <i class="fa-regular fa-bell"></i>
+          </button>
+          <button class="profile-avatar-btn" title="Profile">
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop" alt="User Avatar">
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable view pane -->
+      <div class="main-scroll-container" id="main-scroll-container">
+        
+        <!-- Theme Dynamic Underlay gradient -->
+        <div class="view-gradient-backdrop" id="view-gradient-backdrop"></div>
+        
+        <!-- Render View Target -->
+        <div class="view-content-wrapper" id="view-renderer-target">
+          <!-- Populated dynamically via ui.js -->
+        </div>
+        
+      </div>
+
+      <!-- Overlays (e.g. Synced Lyrics Overlay Panel) -->
+      <div id="lyrics-panel-view" style="display: none;">
+        <div class="lyrics-container" id="lyrics-lines-container">
+          <!-- Synced lyrics inserted here -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ==========================================
+         3. RIGHT SIDEBAR PANEL (NOW PLAYING)
+         ========================================== -->
+    <aside class="panel-card" id="right-sidebar">
+      <!-- Populated dynamically via ui.js when track changes -->
+    </aside>
+
+    <!-- ==========================================
+         4. BOTTOM PLAYER CONTROL BAR
+         ========================================== -->
+    <footer id="bottom-player">
+      
+      <!-- Song Metadata Detail (Left) -->
+      <div class="player-left-meta">
+        <img class="player-cover-thumbnail" id="player-track-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Playing Cover" style="opacity: 0;">
+        <div class="player-meta-info" id="player-meta-info" style="display: none;">
+          <div class="player-track-title" id="player-track-title">Not Playing</div>
+          <div class="player-track-artist" id="player-track-artist">Select a song</div>
+        </div>
+        <button class="player-like-btn" id="player-like-btn" title="Save to Liked Songs" style="display: none;">
+          <i class="fa-regular fa-plus"></i>
+        </button>
+      </div>
+
+      <!-- Playback Controls and Seek Bar (Center) -->
+      <div class="player-center-controls">
+        
+        <div class="playback-buttons">
+          <button class="control-btn" id="player-shuffle-btn" title="Enable shuffle">
+            <i class="fa-solid fa-shuffle"></i>
+          </button>
+          <button class="control-btn" id="player-prev-btn" title="Previous">
+            <i class="fa-solid fa-backward-step"></i>
+          </button>
+          <button class="control-btn control-btn-play-pause" id="player-play-btn" title="Play">
+            <i class="fa-solid fa-play" id="player-play-icon"></i>
+          </button>
+          <button class="control-btn" id="player-next-btn" title="Next">
+            <i class="fa-solid fa-forward-step"></i>
+          </button>
+          <button class="control-btn" id="player-repeat-btn" title="Enable repeat">
+            <i class="fa-solid fa-repeat"></i>
+          </button>
+        </div>
+
+        <div class="playback-timeline-bar">
+          <div class="time-timestamp" id="player-current-time">0:00</div>
+          
+          <!-- Custom Slider for seeker -->
+          <div class="spotify-slider-wrapper" id="timeline-slider-wrapper">
+            <div class="spotify-slider-progress" id="timeline-slider-progress"></div>
+            <div class="spotify-slider-thumb" id="timeline-slider-thumb"></div>
+          </div>
+          
+          <div class="time-timestamp right-align" id="player-duration">0:00</div>
+        </div>
+        
+      </div>
+
+      <!-- Utility Options (Right) -->
+      <div class="player-right-utilities">
+        <button class="utility-icon-btn" id="utility-lyrics-btn" title="Lyrics">
+          <i class="fa-solid fa-microphone-lines"></i>
+        </button>
+        <button class="utility-icon-btn" id="utility-queue-btn" title="Queue">
+          <i class="fa-solid fa-list-ol"></i>
+        </button>
+        <button class="utility-icon-btn" id="utility-nowplaying-btn" title="Now Playing View">
+          <i class="fa-solid fa-square-poll-horizontal"></i>
+        </button>
+        
+        <div class="volume-control-bar">
+          <button class="utility-icon-btn" id="player-mute-btn" title="Mute/Unmute">
+            <i class="fa-solid fa-volume-high" id="player-volume-icon"></i>
+          </button>
+          <div class="spotify-slider-wrapper" id="volume-slider-wrapper">
+            <div class="spotify-slider-progress" id="volume-slider-progress" style="width: 70%;"></div>
+            <div class="spotify-slider-thumb" id="volume-slider-thumb" style="left: 70%;"></div>
+          </div>
+        </div>
+      </div>
+      
+    </footer>
+
+  </div>
+
+  <!-- ==========================================
+       5. MODALS & POPUPS
+       ========================================== -->
+  
+  <!-- Create Playlist Modal -->
+  <div class="modal-overlay" id="create-playlist-modal">
+    <div class="modal-card">
+      <div class="modal-title">Create New Playlist</div>
+      <input type="text" class="modal-input" placeholder="Playlist Name" id="playlist-name-input" autofocus>
+      <input type="text" class="modal-input" placeholder="Description (Optional)" id="playlist-desc-input">
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="playlist-modal-cancel">Cancel</button>
+        <button class="modal-btn modal-btn-submit" id="playlist-modal-submit">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add to Playlist Context Menu / Dropdown -->
+  <div class="dropdown-menu" id="song-context-menu">
+    <!-- Populated dynamically when clicking options -->
+  </div>
+
+  <!-- Entry Script -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
