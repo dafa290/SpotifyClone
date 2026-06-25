@@ -281,62 +281,21 @@ export const defaultPlaylists = [
   }
 ];
 
-// Dynamic YouTube Music Search via Invidious Instances API
+// Dynamic YouTube Music Search via Local Server Proxy
 export async function searchYouTubeMusic(query) {
-  const instances = [
-    "https://yewtu.be",
-    "https://vid.puffyan.us",
-    "https://invidious.nerdvpn.de",
-    "https://invidious.flokinet.to",
-    "https://inv.vern.cc"
-  ];
-  
-  for (const base of instances) {
-    try {
-      const url = `${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
-      
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (!Array.isArray(data)) continue;
+  try {
+    const url = `/api/search?q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
 
-      // Transform YouTube results into standard track structures
-      return data.slice(0, 15).map(item => {
-        const track = {
-          id: `yt-${item.videoId}`,
-          title: item.title,
-          artist: item.author,
-          album: "YouTube Stream",
-          duration: item.lengthSeconds,
-          url: `${base}/latest_version?id=${item.videoId}&itag=140`,
-          color: "#27272a", // zinc theme
-          cover: item.videoThumbnails && item.videoThumbnails.length > 0 
-                 ? item.videoThumbnails.find(t => t.quality === "medium" || t.quality === "default")?.url || item.videoThumbnails[0].url
-                 : "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=300&auto=format&fit=crop",
-          lyrics: [
-            { time: 0, text: "🎵 YouTube Stream Active 🎵" },
-            { time: 5, text: `Video Title: ${item.title}` },
-            { time: 10, text: "Synced lyrics are not available for YouTube streams." }
-          ],
-          artistBio: {
-            bio: `${item.author} is a creator on YouTube. Streaming direct audio track.`,
-            followers: "N/A",
-            listeners: "N/A",
-            image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=350&auto=format&fit=crop"
-          }
-        };
-        // Register in transient cache
-        saveYtTrackToCache(track);
-        return track;
-      });
-    } catch (err) {
-      console.warn(`Instance ${base} failed search query. trying next instance...`, err);
-    }
+    // Register tracks in localStorage cache so player/UI can access them later
+    data.forEach(track => saveYtTrackToCache(track));
+    return data;
+  } catch (err) {
+    console.error("YouTube search request via local proxy failed:", err);
+    return [];
   }
-  return []; // return empty if all instances fail
 }
 
